@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   List,
   ListItem,
@@ -9,19 +10,44 @@ import {
   IconButton,
 } from "@mui/material";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import burger from "../images/burger.jpg";
+import { getOneShop, getProduct, getShops } from "../services/api";
 
-const data = [
-  { id: 12341, img: { burger }, title: "Burger" },
-  { id: 12342, img: { burger }, title: "Burger" },
-  { id: 12343, img: { burger }, title: "Burger" },
-  { id: 12344, img: { burger }, title: "Burger" },
-  { id: 12345, img: { burger }, title: "Burger" },
-  { id: 12346, img: { burger }, title: "Burger" },
-  { id: 12347, img: { burger }, title: "Burger" },
-];
+const HomePage = ({ setProductsInCart }) => {
+  const [shops, setShops] = useState([]);
+  const [menu, setMenu] = useState([]);
 
-const HomePage = () => {
+  useEffect(() => {
+    getShops().then((data) => setShops(data).catch((err) => console.log(err)));
+    getOneShop(shops[0]._id)
+      .then((data) => setMenu(data.menu))
+      .catch((err) => console.log(err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getMenu = (id) => {
+    getOneShop(id)
+      .then((data) => setMenu(data.menu))
+      .catch((err) => console.log(err));
+  };
+
+  const addToCart = (id) => {
+    getProduct(id)
+      .then((data) => {
+        const prod = data.find((item) => item !== null);
+        // добавить на бек свойство кол-во (по умолчанию 0)
+        // добавить следующую проверку:
+        // products.forEach((prod) => {
+        //   if (prod.quantity > 1) {
+        //     return (prod.quantity += 1);
+        //   } else {
+        //     return (prod.quantity = 1);
+        //   }
+        // });
+        setProductsInCart((prev) => [prod, ...prev]);
+      })
+      .catch((err) => console.log(err));
+  };
+
   return (
     <Box
       component="main"
@@ -29,35 +55,38 @@ const HomePage = () => {
     >
       <section>
         <h2>Shops:</h2>
-
-        <List>
-          {["McDonalds", "KFC", "Mafia", "Donner"].map((text) => (
-            <ListItem
-              button
-              key={text}
-              sx={{
-                height: "70px",
-                border: "1px solid grey",
-                borderRadius: "10px",
-                mb: "5px",
-              }}
-            >
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
+        {shops && (
+          <List>
+            {shops.map(({ _id, title }) => (
+              <ListItem
+                button
+                key={_id}
+                sx={{
+                  height: "70px",
+                  border: "1px solid grey",
+                  borderRadius: "10px",
+                  mb: "5px",
+                }}
+                onClick={() => getMenu(_id)}
+              >
+                <ListItemText primary={title} />
+              </ListItem>
+            ))}
+          </List>
+        )}
       </section>
       <section>
         <ImageList cols={3} sx={{ width: "900px" }}>
-          {data.map((item) => (
-            <ImageListItem key={item.id} sx={{ width: "250px" }}>
-              <img src={burger} alt={item.title} />
+          {menu.map(({ _id, img, product }) => (
+            <ImageListItem key={_id} sx={{ width: "250px" }}>
+              <img src={img} alt={product} />
               <ImageListItemBar
-                title={item.title}
+                title={product}
                 actionIcon={
                   <IconButton
-                    aria-label={`info about ${item.title}`}
+                    aria-label={`info about ${product}`}
                     sx={{ color: "white" }}
+                    onClick={() => addToCart(_id)}
                   >
                     <AddShoppingCartIcon />
                   </IconButton>

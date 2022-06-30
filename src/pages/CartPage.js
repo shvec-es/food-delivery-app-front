@@ -9,29 +9,22 @@ import {
   IconButton,
 } from "@mui/material";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
-import burger from "../images/burger.jpg";
 import { validate } from "../helpers/FormValidate";
-
-const data = [
-  { id: 12341, img: { burger }, title: "Burger", price: "100" },
-  { id: 12342, img: { burger }, title: "Burger", price: "100" },
-  { id: 12343, img: { burger }, title: "Burger", price: "100" },
-  { id: 12344, img: { burger }, title: "Burger", price: "100" },
-  { id: 12345, img: { burger }, title: "Burger", price: "100" },
-  { id: 12346, img: { burger }, title: "Burger", price: "100" },
-  { id: 12347, img: { burger }, title: "Burger", price: "100" },
-];
+import { addOrder } from "../services/api";
 
 const initialState = {
   name: "",
   email: "",
   phone: "",
   adress: "",
-  quantity: 1,
 };
 
-const CartPage = () => {
+const CartPage = ({ products }) => {
   const [userData, setUserData] = useState(initialState);
+  const [total, setTotal] = useState(0);
+  // добавить на бек массив продактс в схему аддОрдер
+  // переписать логику удаления!
+  // добавить возможность менять кол-во товаров
 
   const { name, email, phone, adress, quantity } = userData;
   const [errors, setErrors] = useState(userData);
@@ -47,7 +40,7 @@ const CartPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(userData);
+    addOrder({ ...userData });
     setUserData(initialState);
   };
 
@@ -110,14 +103,14 @@ const CartPage = () => {
             cols={1}
             sx={{ width: "500px", height: "70vh", mb: "15px" }}
           >
-            {data.map((item) => (
+            {products.map(({ _id, product, img, price }) => (
               <Box
-                key={item.id}
+                key={_id}
                 component="div"
                 sx={{ display: "flex", justifyContent: "space-around" }}
               >
                 <ImageListItem sx={{ width: "250px" }}>
-                  <img src={burger} alt={item.title} />
+                  <img src={img} alt={product} />
                 </ImageListItem>
                 <Box
                   component="div"
@@ -135,9 +128,9 @@ const CartPage = () => {
                   >
                     <HighlightOffIcon />
                   </IconButton>
-                  <Typography component="p">{item.title}</Typography>
+                  <Typography component="p">{product}</Typography>
                   <Typography component="p" sx={{ mb: "15px" }}>
-                    Price: {item.price}$
+                    Price: {price}$
                   </Typography>
                   <TextField
                     name="quantity"
@@ -162,7 +155,7 @@ const CartPage = () => {
             }}
           >
             <Typography component="p" sx={{ mr: "30px" }}>
-              Total price: ...$
+              Total price: {total} $
             </Typography>
             <Button variant="contained" type="submit" color="secondary">
               Send order
